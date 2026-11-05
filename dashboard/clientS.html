@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clients - PosEdge CRM</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-logo">PosEdge CRM</div>
+        <ul class="sidebar-menu">
+            <li><a href="/"><span>🏠</span> Dashboard</a></li>
+            <li><a href="/history.html"><span>📋</span> Process History</a></li>
+            <li><a href="/clients.html" class="active"><span>👥</span> Clients</a></li>
+            <li><a href="/settings.html"><span>⚙️</span> Settings</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <header class="crm-header">
+            <h1>Client Directory</h1>
+        </header>
+
+        <div class="crm-body">
+            <div class="data-card" style="max-width: 800px;">
+                <table class="crm-table">
+                    <thead>
+                        <tr>
+                            <th>Client Name</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clientsBody">
+                        <tr><td style="text-align: center; padding: 40px; color: #9ca3af;">Loading clients...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function getClients() {
+            try {
+                const response = await fetch("/api/history");
+                const data = await response.json();
+                
+                // Extract unique clients only
+                const uniqueClients = new Set();
+                data.forEach(item => {
+                    if (item.client && item.client !== "Unknown") {
+                        uniqueClients.add(item.client);
+                    }
+                });
+
+                const clientList = Array.from(uniqueClients);
+                const tbody = document.getElementById("clientsBody");
+
+                if (clientList.length === 0) {
+                    tbody.innerHTML = `<tr><td style="text-align: center; padding: 40px; color: #9ca3af;">No clients recorded yet.</td></tr>`;
+                    return;
+                }
+
+                // Render only the Client Name
+                tbody.innerHTML = clientList.map(client => `
+                    <tr>
+                        <td style="font-weight: 600; font-size: 15px; color: #111827; padding: 20px;">
+                            ${client}
+                        </td>
+                    </tr>
+                `).join("");
+
+            } catch (error) {
+                console.error("Error loading clients:", error);
+            }
+        }
+
+        getClients();
+        setInterval(getClients, 5000); // Refresh every 5 seconds
+    </script>
+</body>
+</html>

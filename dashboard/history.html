@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Process History - PosEdge CRM</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-logo">PosEdge CRM</div>
+        <ul class="sidebar-menu">
+            <li><a href="/"><span>🏠</span> Dashboard</a></li>
+            <li><a href="/history.html" class="active"><span>📋</span> Process History</a></li>
+            <li><a href="/clients.html"><span>👥</span> Clients</a></li>
+            <li><a href="/settings.html"><span>⚙️</span> Settings</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <header class="crm-header">
+            <h1>Process History</h1>
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Search clients or computers..." onkeyup="filterTable()" style="width: 250px; padding: 8px 12px; border-radius: 8px; border: 1px solid #d1d5db; outline: none;">
+            </div>
+        </header>
+
+        <div class="crm-body">
+            <div class="data-card">
+                <table class="crm-table">
+                    <thead>
+                        <tr>
+                            <th>Client / Computer</th>
+                            <th>Action</th>
+                            <th>Status</th>
+                            <th>Details</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody">
+                        <tr><td colspan="5" style="text-align: center; padding: 40px; color: #9ca3af;">Loading records...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="/history.js"></script>
+</body>
+</html>

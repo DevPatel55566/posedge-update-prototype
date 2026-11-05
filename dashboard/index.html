@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - PosEdge CRM</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-logo">PosEdge CRM</div>
+        <ul class="sidebar-menu">
+            <li><a href="/" class="active"><span>🏠</span> Dashboard</a></li>
+            <li><a href="/history.html"><span>📋</span> Process History</a></li>
+            <li><a href="/clients.html"><span>👥</span> Clients</a></li>
+            <li><a href="/settings.html"><span>⚙️</span> Settings</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <header class="crm-header">
+            <h1>Dashboard</h1>
+            <div id="connection" class="connection offline" style="background: #fee2e2; color: #991b1b; padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 13px;">Agent Offline</div>
+        </header>
+
+        <div class="crm-body">
+            
+            <div style="margin-bottom: 20px; padding: 20px; background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 12px; text-align: center;">
+                <h2 style="margin-bottom: 10px; color: #3730a3;">Fully Automated Pipeline</h2>
+                <p style="color: #4338ca; margin-bottom: 15px; font-size: 14px;">Clicks this to automatically Check, Download, Install, and Backup in one go.</p>
+                <button id="autoUpdateButton" onclick="runAutoUpdate()" class="btn-primary" style="width: auto; padding: 15px 40px; font-size: 16px; border-radius: 30px;">
+                    🚀 Start Full Auto Update
+                </button>
+            </div>
+
+            <section class="grid">
+                <div class="card">
+                    <h2>Agent</h2>
+                    <div class="value-row"><span>Computer</span><strong id="computer">—</strong></div>
+                    <div class="value-row"><span>Status</span><strong id="status">—</strong></div>
+                    <div class="value-row"><span>Last Seen</span><strong id="lastSeen">—</strong></div>
+                </div>
+
+                <div class="card">
+                    <h2>Client / License</h2>
+                    <div class="value-row"><span>Client Name</span><strong id="client">—</strong></div>
+                    <div class="value-row"><span>License File</span><strong id="license">—</strong></div>
+                    <div class="value-row"><span>Address</span><strong id="address">—</strong></div>
+                </div>
+
+                <div class="card">
+                    <h2>UniversalPOS</h2>
+                    <div class="value-row"><span>Latest Release</span><strong id="version">—</strong></div>
+                    <div class="value-row"><span>Installer</span><strong id="installerFile">—</strong></div>
+                    <div class="value-row"><span>Size</span><strong id="installerSize">—</strong></div>
+                </div>
+
+                <div class="card">
+                    <h2>Backup Status</h2>
+                    <div class="value-row"><span>Last Backup</span><strong id="lastBackup">—</strong></div>
+                    <div class="value-row"><span>Next Backup</span><strong id="nextBackup">—</strong></div>
+                    <label>Backup Folder Name (Optional)</label>
+                    <input type="text" id="backupFolderInput" placeholder="Auto-detects from .lic if blank">
+                    <button onclick="runBackup()">Run Backup Now</button>
+                </div>
+            </section>
+
+            <section class="card" style="margin-top: 20px;">
+                <h2>Current Operation</h2>
+                <div id="operation" class="operation-status">Idle</div>
+                <div id="error" class="error"></div>
+            </section>
+        </div>
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>

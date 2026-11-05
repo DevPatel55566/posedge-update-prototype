@@ -1,0 +1,16 @@
+{
+  "serverUrl": "ws://localhost:3002",
+  "agentToken": "change-this-token",
+  "dataPath": "C:\\posedge\\Data",
+  "downloadPath": "C:\\Users\\User\\Downloads",
+  "backupPath": "\\\\xtreme.dyndns.org\\XTreme POS Data\\",
+  "scanIntervalMs": 30000,
+  "nasAuth": {
+    "username": "Sanjay",
+    "password": "Sairam432$#@"
+  },
+  "universalPos": {
+    "username": "info@thexts.ca",
+    "password": "Sanjay1978#"
+  }
+}

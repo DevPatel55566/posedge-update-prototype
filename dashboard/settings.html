@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - PosEdge CRM</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-logo">PosEdge CRM</div>
+        <ul class="sidebar-menu">
+            <li><a href="/"><span>🏠</span> Dashboard</a></li>
+            <li><a href="/history.html"><span>📋</span> Process History</a></li>
+            <li><a href="/clients.html"><span>👥</span> Clients</a></li>
+            <li><a href="/settings.html" class="active"><span>⚙️</span> Settings</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <header class="crm-header">
+            <h1>System Settings</h1>
+        </header>
+
+        <div class="crm-body" style="max-width: 800px;">
+            
+            <div class="card" style="margin-bottom: 20px;">
+                <h2>Backup Configuration</h2>
+                <p style="color: #6b7280; font-size: 14px; margin-bottom: 15px;">Force a manual backup right now. This will override the 24-hour schedule and immediately copy the current POS data to the NAS.</p>
+                
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <input type="text" id="settingsBackupInput" placeholder="Optional: Custom Folder Name (Leave blank for auto-detect)" style="flex-grow: 1; margin-top: 0;">
+                    <button onclick="forceBackup()" class="btn-primary" style="width: auto; margin-top: 0; white-space: nowrap;">🔄 Force Re-Backup Now</button>
+                </div>
+                <div id="settingsMessage" style="margin-top: 15px; font-weight: 600; font-size: 14px; color: #166534; display: none;"></div>
+            </div>
+
+            <div class="card">
+                <h2>Danger Zone</h2>
+                <p style="color: #6b7280; font-size: 14px; margin-bottom: 15px;">These actions will affect the connected agent immediately.</p>
+                <button onclick="killPos()" class="btn-danger" style="width: auto;">Kill Running POS Software</button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        async function forceBackup() {
+            const folderInput = document.getElementById("settingsBackupInput");
+            const customFolderName = folderInput.value.trim() !== "" ? folderInput.value.trim() : null;
+            const msgBox = document.getElementById("settingsMessage");
+            const btn = document.querySelector('button[onclick="forceBackup()"]');
+
+            btn.disabled = true;
+            btn.textContent = "Starting Backup...";
+            msgBox.style.display = "none";
+
+            try {
+                const response = await fetch("/api/run-backup", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ folderName: customFolderName })
+                });
+                
+                if (response.ok) {
+                    msgBox.textContent = "✅ Backup command sent successfully! Check the Process History page for updates.";
+                    msgBox.style.display = "block";
+                } else {
+                    alert("Failed to send backup command. Is the agent online?");
+                }
+            } catch (e) {
+                alert("Server connection error.");
+            }
+
+            btn.disabled = false;
+            btn.textContent = "🔄 Force Re-Backup Now";
+        }
+
+        async function killPos() {
+            if(confirm("Are you sure you want to force kill the POS software? This might interrupt a sale in progress.")) {
+                try {
+                    // We will reuse the auto-update route logic or just send a log
+                    alert("Agent must be restarted to kill processes safely via UI, but this button would send a kill command.");
+                } catch(e) {}
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,10 +1,12 @@
 {
-  "serverUrl": "ws://localhost:3002",
-  "agentToken": "change-this-token",
+
+  "serverUrl": "wss://posedge-update-prototype.onrender.com",
+  "agentToken": "Canada7272$#@",
   "dataPath": "C:\\posedge\\Data",
   "downloadPath": "C:\\Users\\User\\Downloads",
-  "backupPath": "\\\\xtreme.dyndns.org\\XTreme POS Data\\",
+  "backupPath": "synology:XTREME POS DATA/",
   "scanIntervalMs": 30000,
+
   "nasAuth": {
     "username": "Sanjay",
     "password": "Sairam432$#@"

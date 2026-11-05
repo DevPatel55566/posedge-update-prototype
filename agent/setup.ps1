@@ -1,18 +1,29 @@
-# setup.ps1 - Auto-installer for PosEdge Agent
+# setup.ps1 - Bulletproof Installer
 $ErrorActionPreference = "Stop"
 $InstallDir = "C:\PosEdgeAgent"
 
-Write-Host "Creating installation directory at $InstallDir..."
-If (!(Test-Path -Path $InstallDir)) { New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null }
+Write-Host "=== Starting PosEdge Agent Installer ===" -ForegroundColor Cyan
 
-Write-Host "Installing Node.js dependencies..."
-Set-Location $InstallDir
-npm install
+# 1. Check and Install Node.js (Only needed to run the app, not to build it)
+if (!(Get-Command node -ErrorAction SilentlyContinue)) {
+    Write-Host "Node.js not found. Installing via winget..." -ForegroundColor Yellow
+    winget install OpenJS.NodeJS.LTS --accept-source-agreements --accept-package-agreements
+    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+}
 
-Write-Host "Installing Python dependencies (PyAutoGUI, OpenCV)..."
+# 2. Check and Install Python
+if (!(Get-Command python -ErrorAction SilentlyContinue)) {
+    Write-Host "Python not found. Installing via winget..." -ForegroundColor Yellow
+    winget install Python.Python.3.12 --accept-source-agreements --accept-package-agreements
+    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+}
+
+# 3. Install Python Libraries
+Write-Host "Installing Python dependencies..." -ForegroundColor Cyan
 python -m pip install pyautogui pygetwindow opencv-python pillow
 
-Write-Host "Downloading Rclone..."
+# 4. Download and Install Rclone
+Write-Host "Downloading Rclone..." -ForegroundColor Cyan
 $rcloneUrl = "https://downloads.rclone.org/rclone-current-windows-amd64.zip"
 $rcloneZip = "$InstallDir\rclone.zip"
 Invoke-WebRequest -Uri $rcloneUrl -OutFile $rcloneZip
@@ -21,7 +32,8 @@ Remove-Item $rcloneZip
 $rcloneExe = Get-ChildItem -Path "$InstallDir\rclone" -Filter "rclone.exe" -Recurse | Select-Object -First 1
 Copy-Item $rcloneExe.FullName -Destination "C:\Windows\System32\rclone.exe" -Force
 
-Write-Host "Setting up Auto-Start with Windows Task Scheduler..."
+# 5. Set up Auto-Start
+Write-Host "Setting up Auto-Start with Windows Task Scheduler..." -ForegroundColor Cyan
 $action = New-ScheduledTaskAction -Execute "node.exe" -Argument "agent.js" -WorkingDirectory $InstallDir
 $trigger = New-ScheduledTaskTrigger -AtLogOn
 $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
@@ -29,8 +41,8 @@ $principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interac
 
 Register-ScheduledTask -TaskName "PosEdgeAgent" -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force
 
-Write-Host "Starting the Agent for the first time..."
+# 6. Start the Agent
+Write-Host "Starting the Agent..." -ForegroundColor Cyan
 Start-Process -FilePath "node.exe" -ArgumentList "agent.js" -WorkingDirectory $InstallDir
 
-Write-Host "Installation Complete! PosEdge Agent is now running in the background."
-Start-Sleep -Seconds 5
+Write-Host "=== Installation Complete! ===" -ForegroundColor Green

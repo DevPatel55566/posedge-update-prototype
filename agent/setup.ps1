@@ -1,4 +1,4 @@
-# setup.ps1 - Permanent Path Fix
+# setup.ps1 - Permanent Path & Lock Fix
 $ErrorActionPreference = "Stop"
 $InstallDir = $PSScriptRoot
 
@@ -23,19 +23,28 @@ if (!(Get-Command python -ErrorAction SilentlyContinue)) {
 Write-Host "Installing Python dependencies..." -ForegroundColor Cyan
 python -m pip install pyautogui pygetwindow opencv-python pillow
 
-# 4. Download and Install Rclone
-Write-Host "Downloading Rclone..." -ForegroundColor Cyan
-$rcloneUrl = "https://downloads.rclone.org/rclone-current-windows-amd64.zip"
-$rcloneZip = "$InstallDir\rclone.zip"
-Invoke-WebRequest -Uri $rcloneUrl -OutFile $rcloneZip
-Expand-Archive -Path $rcloneZip -DestinationPath "$InstallDir\rclone" -Force
-Remove-Item $rcloneZip
-$rcloneExe = Get-ChildItem -Path "$InstallDir\rclone" -Filter "rclone.exe" -Recurse | Select-Object -First 1
-Copy-Item $rcloneExe.FullName -Destination "C:\Windows\System32\rclone.exe" -Force
+# 4. Download and Install Rclone (WITH LOCK FIX)
+if (!(Test-Path "C:\Windows\System32\rclone.exe")) {
+    Write-Host "Rclone not found. Downloading..." -ForegroundColor Cyan
+    $rcloneUrl = "https://downloads.rclone.org/rclone-current-windows-amd64.zip"
+    $rcloneZip = "$InstallDir\rclone.zip"
+    Invoke-WebRequest -Uri $rcloneUrl -OutFile $rcloneZip
+    Expand-Archive -Path $rcloneZip -DestinationPath "$InstallDir\rclone" -Force
+    Remove-Item $rcloneZip
+    $rcloneExe = Get-ChildItem -Path "$InstallDir\rclone" -Filter "rclone.exe" -Recurse | Select-Object -First 1
+    
+    Write-Host "Killing any running Rclone processes to unlock file..." -ForegroundColor Yellow
+    Stop-Process -Name rclone -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Seconds 2
+    
+    Write-Host "Copying Rclone to System32..." -ForegroundColor Cyan
+    Copy-Item $rcloneExe.FullName -Destination "C:\Windows\System32\rclone.exe" -Force
+} else {
+    Write-Host "Rclone is already installed. Skipping download." -ForegroundColor Green
+}
 
 # 5. Set up Auto-Start with Windows Task Scheduler
 Write-Host "Setting up Auto-Start with Windows Task Scheduler..." -ForegroundColor Cyan
-# Find exactly where node.exe is so Task Scheduler never fails
 $nodePath = (Get-Command node).Source
 $action = New-ScheduledTaskAction -Execute $nodePath -Argument "agent.js" -WorkingDirectory $InstallDir
 $trigger = New-ScheduledTaskTrigger -AtLogOn

@@ -135,9 +135,27 @@ app.get("/api/install.bat", (req, res) => {
   res.setHeader('Content-Type', 'application/octet-stream');
   res.setHeader('Content-Disposition', 'attachment; filename="Install-PosEdge.bat"');
 
-  // This is the exact one-liner you asked me to automate, wrapped inside a batch file
-  const psCommand = `[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $url = 'https://posedge-update-prototype.onrender.com/api/download-agent'; $zip = "$env:TEMP\\agent.zip"; $dest = 'C:\\PosEdgeAgent'; Write-Host 'Downloading Agent...' -ForegroundColor Cyan; curl.exe -L -o "$zip" "$url"; Write-Host 'Extracting Files...' -ForegroundColor Cyan; Expand-Archive -Path $zip -DestinationPath $dest -Force; $setupFile = Get-ChildItem -Path $dest -Filter 'setup.ps1' -Recurse | Select-Object -First 1; if ($setupFile) { Set-Location $setupFile.DirectoryName; Write-Host 'Running Setup...' -ForegroundColor Cyan; powershell -ExecutionPolicy Bypass -File setup.ps1 } else { Write-Host 'ERROR: setup.ps1 not found!' -ForegroundColor Red }`;
-  
+  // Fixed: Using Join-Path to avoid quote-stripping issues
+  const psCommand = `
+$ErrorActionPreference = 'Stop';
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
+$url = 'https://posedge-update-prototype.onrender.com/api/download-agent';
+$zip = Join-Path $env:TEMP 'agent.zip';
+$dest = 'C:\\PosEdgeAgent';
+Write-Host 'Downloading Agent...' -ForegroundColor Cyan;
+curl.exe -L -o "$zip" "$url";
+Write-Host 'Extracting Files...' -ForegroundColor Cyan;
+Expand-Archive -Path $zip -DestinationPath $dest -Force;
+$setupFile = Get-ChildItem -Path $dest -Filter 'setup.ps1' -Recurse | Select-Object -First 1;
+if ($setupFile) {
+    Set-Location $setupFile.DirectoryName;
+    Write-Host 'Running Setup...' -ForegroundColor Cyan;
+    powershell -ExecutionPolicy Bypass -File setup.ps1
+} else {
+    Write-Host 'ERROR: setup.ps1 not found!' -ForegroundColor Red
+}
+`.replace(/\n/g, ' '); // Flatten to a single line
+
   const batContent = `@echo off
 title PosEdge Agent Installer
 echo ========================================================

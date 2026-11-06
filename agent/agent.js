@@ -33,7 +33,7 @@ function log(message) {
     send({ type: "log", message });
 }
 
-// NEW: Send history log to server
+// Send history log to server
 function logHistory(action, status, details) {
     send({
         type: "log_history",
@@ -72,11 +72,11 @@ async function triggerBackup(manualFolderName = null) {
         state.currentOperation = "Backup Complete";
         state.lastBackup = new Date().toISOString();
         log(`Backup successful! Saved to: ${backupResult.destination}`);
-        logHistory("Backup", "Success", backupResult.destination); // LOG SUCCESS
+        logHistory("Backup", "Success", backupResult.destination);
     } catch (error) {
         state.currentOperation = "Backup Failed"; state.error = error.message;
         log(`Backup failed: ${error.message}`);
-        logHistory("Backup", "Failed", error.message); // LOG FAILURE
+        logHistory("Backup", "Failed", error.message); 
     }
     reportState();
 }
@@ -142,19 +142,21 @@ async function downloadLatestRelease() {
 async function installLatestRelease() {
     try {
         if (!state.downloadedInstaller) throw new Error("No installer available.");
-        state.currentOperation = "Starting Installer"; reportState();
+        state.currentOperation = "Launching Installer"; reportState();
         
+        // This just OPENS the installer. It does not click anything.
         await runInstaller(state.downloadedInstaller.path);
         
-        state.currentOperation = "Installation complete"; reportState();
-        logHistory("Install", "Success", `Version ${state.downloadedInstaller.version}`); // LOG SUCCESS
+        state.currentOperation = "Waiting for Manual Installation"; reportState();
+        log("Installer launched. Please click through the installation manually on the screen.");
+        log("Once finished, go to the dashboard and click 'Run Backup Now' to start the first backup.");
         
-        log("Running initial backup...");
-        await triggerBackup(); 
-        scheduleBackup(); 
+        logHistory("Install", "Launched", `Version ${state.downloadedInstaller.version}`);
+        
+        // We do NOT trigger the backup here anymore. You will do it manually from the dashboard.
     } catch (error) {
-        state.currentOperation = "Installer failed"; state.error = error.message; reportState();
-        logHistory("Install", "Failed", error.message); // LOG FAILURE
+        state.currentOperation = "Installer launch failed"; state.error = error.message; reportState();
+        logHistory("Install", "Failed", error.message); 
         throw error;
     }
 }
@@ -165,7 +167,10 @@ async function runFullAutomation() {
         await checkLatestRelease();
         await downloadLatestRelease();
         await installLatestRelease();
-        log("FULL AUTOMATION COMPLETED");
+        log("==========================================");
+        log("INSTALLER LAUNCHED. PLEASE INSTALL MANUALLY.");
+        log("WHEN DONE, CLICK 'RUN BACKUP NOW' ON THE DASHBOARD.");
+        log("==========================================");
     } catch (error) {
         log(`Automation FAILED: ${error.message}`);
     }

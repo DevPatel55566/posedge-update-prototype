@@ -131,6 +131,26 @@ app.post("/api/auto-update", (req, res) => {
   res.json({ success: true });
 });
 
+app.get("/api/install.bat", (req, res) => {
+  res.setHeader('Content-Type', 'application/octet-stream');
+  res.setHeader('Content-Disposition', 'attachment; filename="Install-PosEdge.bat"');
+
+  // This is the exact one-liner you asked me to automate, wrapped inside a batch file
+  const psCommand = `[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $url = 'https://posedge-update-prototype.onrender.com/api/download-agent'; $zip = "$env:TEMP\\agent.zip"; $dest = 'C:\\PosEdgeAgent'; Write-Host 'Downloading Agent...' -ForegroundColor Cyan; curl.exe -L -o "$zip" "$url"; Write-Host 'Extracting Files...' -ForegroundColor Cyan; Expand-Archive -Path $zip -DestinationPath $dest -Force; $setupFile = Get-ChildItem -Path $dest -Filter 'setup.ps1' -Recurse | Select-Object -First 1; if ($setupFile) { Set-Location $setupFile.DirectoryName; Write-Host 'Running Setup...' -ForegroundColor Cyan; powershell -ExecutionPolicy Bypass -File setup.ps1 } else { Write-Host 'ERROR: setup.ps1 not found!' -ForegroundColor Red }`;
+  
+  const batContent = `@echo off
+title PosEdge Agent Installer
+echo ========================================================
+echo Installing PosEdge Agent. Please do not close this window.
+echo ========================================================
+powershell -NoProfile -ExecutionPolicy Bypass -Command "${psCommand}"
+echo.
+echo Installation Complete! You can close this window now.
+pause`;
+
+  res.send(batContent);
+});
+
 app.get("*", (req, res) => res.sendFile(path.join(__dirname, "..", "dashboard", "index.html")));
 
 server.listen(PORT, () => console.log(`PosEdge Update Manager server running at http://localhost:${PORT}`));

@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - PosEdge CRM</title>
     <link rel="stylesheet" href="/styles.css">
 </head>
+
 <body>
 
     <!-- Sidebar -->
@@ -23,17 +25,26 @@
     <div class="main-content">
         <header class="crm-header">
             <h1>Dashboard</h1>
-            <div id="connection" class="connection offline" style="background: #fee2e2; color: #991b1b; padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 13px;">Agent Offline</div>
+            <div id="connection" class="connection offline"
+                style="background: #fee2e2; color: #991b1b; padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 13px;">
+                Agent Offline</div>
         </header>
 
         <div class="crm-body">
-            
-            <div style="margin-bottom: 20px; padding: 20px; background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 12px; text-align: center;">
+
+            <div
+                style="margin-bottom: 20px; padding: 20px; background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 12px; text-align: center;">
                 <h2 style="margin-bottom: 10px; color: #3730a3;">Fully Automated Pipeline</h2>
-                <p style="color: #4338ca; margin-bottom: 15px; font-size: 14px;">Clicks this to automatically Check, Download, Install, and Backup in one go.</p>
-                <button id="autoUpdateButton" onclick="runAutoUpdate()" class="btn-primary" style="width: auto; padding: 15px 40px; font-size: 16px; border-radius: 30px;">
+                <p style="color: #4338ca; margin-bottom: 15px; font-size: 14px;">Clicks this to automatically Check,
+                    Download, Install, and Backup in one go.</p>
+                <button id="autoUpdateButton" onclick="runAutoUpdate()" class="btn-primary"
+                    style="width: auto; padding: 15px 40px; font-size: 16px; border-radius: 30px;">
                     🚀 Start Full Auto Update
                 </button>
+                <a href="/api/install.bat"
+                    style="text-decoration: none; display: inline-block; margin-top: 15px; padding: 12px 30px; background: #111827; color: white; border-radius: 30px; font-weight: bold; font-size: 14px; transition: 0.2s;">
+                    ⬇️ Download Installer for New PC
+                </a>
             </div>
 
             <section class="grid">
@@ -78,4 +89,5 @@
 
     <script src="/app.js"></script>
 </body>
+
 </html>

@@ -1,12 +1,10 @@
 import fs from "fs";
-import path from "path";
 import { spawn } from "child_process";
 
 async function killPosProcesses() {
-  console.log("[INSTALLER] Killing any running POS processes to prevent file locks...");
   return new Promise((resolve) => {
     const script = `
-$exclude = @("node", "universal2026092", "cmd", "conhost", "explorer", "powershell", "python")
+$exclude = @("node", "cmd", "conhost", "explorer", "powershell", "python")
 Get-Process | Where-Object {
     ($_.ProcessName -like "*pos*" -or $_.ProcessName -like "*universal*") -and
     $exclude -notcontains $_.ProcessName
@@ -18,32 +16,38 @@ Get-Process | Where-Object {
 }
 
 export async function runInstaller(installerPath) {
-  console.log("\n==========================================");
-  console.log("[INSTALLER] Starting UniversalPOS installer");
-  console.log("==========================================");
-  console.log(`[INSTALLER] File: ${installerPath}`);
-
-  if (!fs.existsSync(installerPath)) throw new Error(`Installer file does not exist: ${installerPath}`);
-  const stats = fs.statSync(installerPath);
-  if (stats.size <= 0) throw new Error("Installer file is empty.");
-
+  console.log("[INSTALLER] Starting Silent Install...");
   await killPosProcesses();
 
-  console.log("[INSTALLER] Launching PyAutoGUI automation script...");
-  const pythonScript = path.join(process.cwd(), "automate_installer.py");
+  const escapedPath = installerPath.replace(/'/g, "''");
+  
+  // /VERYSILENT runs it in the background. 
+  // The script waits for it to finish, then waits 30s and sends 2 Enter keys for the DB prompt.
+  const script = `
+Start-Process -FilePath '${escapedPath}' -ArgumentList '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART' -Wait
+Write-Output "Install Finished. Waiting for DB Prompt..."
+Start-Sleep -Seconds 20
+Add-Type -AssemblyName System.Windows.Forms
+[System.Windows.Forms.SendKeys]::SendWait("{TAB}")
+Start-Sleep -Seconds 1
+[System.Windows.Forms.SendKeys]::SendWait("{ENTER}")
+Start-Sleep -Seconds 5
+[System.Windows.Forms.SendKeys]::SendWait("{ENTER}")
+Write-Output "Automation Complete"
+`;
 
   return new Promise((resolve, reject) => {
-    const pythonProcess = spawn("python", [pythonScript, installerPath]);
+    const child = spawn("powershell.exe", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", script]);
+    
+    child.stdout.on("data", (data) => { process.stdout.write(data.toString()); });
+    child.stderr.on("data", (data) => { console.error(data.toString()); });
 
-    pythonProcess.stdout.on("data", (data) => { process.stdout.write(data.toString()); });
-    pythonProcess.stderr.on("data", (data) => { console.error(data.toString()); });
-
-    pythonProcess.on("close", (code) => {
+    child.on("close", (code) => {
       if (code === 0) {
-        console.log("[INSTALLER] PyAutoGUI script completed successfully.");
-        resolve({ success: true, installerPath });
+        console.log("[INSTALLER] Silent installation successful.");
+        resolve({ success: true });
       } else {
-        reject(new Error(`PyAutoGUI script failed with exit code ${code}`));
+        reject(new Error(`Silent installer failed with code ${code}`));
       }
     });
   });

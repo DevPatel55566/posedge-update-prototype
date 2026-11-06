@@ -8,7 +8,7 @@ export async function runInstaller(installerPath) {
 
   const escapedPath = installerPath.replace(/'/g, "''");
 
-  // This PowerShell script hardcodes every single step of the Universal POS installer.
+  // We removed -PassThru and $proc.Id. We find the window by its Title.
   const psScript = `
     # 1. Kill any running POS software
     $exclude = @("node", "cmd", "conhost", "explorer", "powershell", "python")
@@ -19,7 +19,7 @@ export async function runInstaller(installerPath) {
 
     # 2. Launch the installer
     Write-Host "[INSTALLER] Launching installer..."
-    $proc = Start-Process -FilePath '${escapedPath}' -PassThru
+    Start-Process -FilePath '${escapedPath}'
     Start-Sleep -Seconds 5
 
     Add-Type -AssemblyName System.Windows.Forms
@@ -27,7 +27,8 @@ export async function runInstaller(installerPath) {
 
     function Send-Keys {
         param([string]$keys, [int]$wait = 1)
-        [Microsoft.VisualBasic.Interaction]::AppActivate($proc.Id)
+        # AppActivate by Title is much more reliable than PID
+        [Microsoft.VisualBasic.Interaction]::AppActivate("Universal POS Setup")
         Start-Sleep -Milliseconds 500
         [System.Windows.Forms.SendKeys]::SendWait($keys)
         Start-Sleep -Seconds $wait
@@ -67,7 +68,6 @@ export async function runInstaller(installerPath) {
     # 9. STEP 7: Database Upgrade Prompts
     Write-Host "[INSTALLER] Step 7: Waiting 15 seconds for Database Prompts..."
     Start-Sleep -Seconds 15
-    # We don't use AppActivate here because the prompt is a new process (SystemManager)
     [System.Windows.Forms.SendKeys]::SendWait("{TAB}")
     Start-Sleep -Seconds 1
     [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")
@@ -78,7 +78,6 @@ export async function runInstaller(installerPath) {
   `;
 
   return new Promise((resolve, reject) => {
-    // Run the script inside PowerShell
     const child = spawn("powershell.exe", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", psScript]);
     
     child.stdout.on("data", (data) => { process.stdout.write(data.toString()); });
@@ -86,10 +85,10 @@ export async function runInstaller(installerPath) {
 
     child.on("close", (code) => {
       if (code === 0) {
-        console.log("[INSTALLER] Silent installation successful.");
+        console.log("[INSTALLER] Installation sequence completed.");
         resolve({ success: true });
       } else {
-        reject(new Error(`Installer failed with code ${code}`));
+        reject(new Error(`Installer sequence failed with code ${code}`));
       }
     });
   });

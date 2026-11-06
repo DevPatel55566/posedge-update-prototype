@@ -23,8 +23,9 @@ export function performBackup(dataPath, nasPath, clientName) {
       "--create-empty-src-dirs"
     ];
 
-    // HARDCODED PATH TO RCLONE (from your machine)
-    const rclonePath = "C:\\Users\\USER\\AppData\\Local\\Microsoft\\WinGet\\Links\\rclone.exe";
+    // HARDCODED PATH TO RCLONE (from your machine)const rclonePath = "C:\\Users\\USER\\AppData\\Local\\Microsoft\\WinGet\\Links\\rclone.exe";
+    const rclonePath = "rclone";
+
 
     console.log(`[BACKUP] Running: ${rclonePath} ${rcloneArgs.join(" ")}`);
 

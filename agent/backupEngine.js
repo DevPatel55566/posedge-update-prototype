@@ -11,7 +11,9 @@ export function performBackup(dataPath, nasPath, folderName) {
     }
 
     const safeFolderName = folderName.replace(/[<>:"/\\|?*]+/g, "").trim();
-    const remoteDestination = `synology:XTREME POS DATA/${safeFolderName}`;
+    
+    // Using the working Synology-R remote
+    const remoteDestination = `Synology-R:XTREME POS DATA/${safeFolderName}`;
     
     const configPath = path.join(process.cwd(), "rclone.conf");
     if (!fs.existsSync(configPath)) {
@@ -23,7 +25,6 @@ export function performBackup(dataPath, nasPath, folderName) {
       dataPath,
       remoteDestination,
       "--config", configPath,
-      "--no-check-certificate",
       "--create-empty-src-dirs",
       "--transfers", "1",       
       "--checkers", "1",        
@@ -38,7 +39,7 @@ export function performBackup(dataPath, nasPath, folderName) {
       "--exclude", "*.lock"
     ];
 
-    console.log(`[BACKUP] Starting rclone for ${folderName}...`);
+    console.log(`[BACKUP] Starting rclone for ${folderName} using Synology-R...`);
     
     const cmd = spawn("rclone", rcloneArgs, { windowsHide: true });
     
@@ -50,7 +51,7 @@ export function performBackup(dataPath, nasPath, folderName) {
     });
 
     cmd.on("error", (err) => {
-        reject(new Error(`Failed to start rclone. Is it installed in your PATH? ${err.message}`));
+        reject(new Error(`Failed to start rclone. ${err.message}`));
     });
 
     cmd.on("close", (code) => {

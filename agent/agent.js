@@ -30,6 +30,7 @@ let state = {
     error: null
 };
 
+// Load saved folder name if it exists, otherwise leave it blank
 if (fs.existsSync(folderNameFile)) {
     state.folderName = fs.readFileSync(folderNameFile, "utf8").trim();
 }
@@ -44,9 +45,10 @@ function log(msg) {
 }
 
 async function triggerBackup() {
+    // STRICT CHECK: If no name, do absolutely nothing.
     if (!state.folderName) {
-        log("Backup skipped: No folder name set.");
-        state.error = "No folder name set in dashboard.";
+        log("Backup skipped: No folder name set. Please type one in the dashboard.");
+        state.error = "No folder name set.";
         send({ type: "agent_state", data: state });
         return;
     }
@@ -78,14 +80,14 @@ async function triggerBackup() {
 function scheduleNextBackup() {
     if (backupTimer) clearTimeout(backupTimer);
     
+    // Safety check: Never schedule if there's no name
+    if (!state.folderName) return;
+
     const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
     const now = Date.now();
-    
-    // If we have a last backup, schedule 24h from then. Otherwise, schedule 24h from NOW.
     const lastEventTime = state.lastBackup ? new Date(state.lastBackup).getTime() : now;
     let nextTime = lastEventTime + TWENTY_FOUR_HOURS;
     
-    // If the calculated time is in the past (e.g. PC was off for 3 days), run it immediately (1 min from now)
     if (nextTime < now) {
         nextTime = now + (60 * 1000); 
     }
@@ -119,7 +121,13 @@ function connect() {
             state.status = "Online";
             log("Connected to dashboard.");
             send({ type: "agent_state", data: state });
-            if (!backupTimer) scheduleNextBackup();
+            
+            // ONLY schedule on startup IF a name was already saved
+            if (state.folderName) {
+                scheduleNextBackup();
+            } else {
+                log("Waiting for user to enter a backup folder name on the dashboard.");
+            }
         }
         
         if (message.type === "run_backup") {

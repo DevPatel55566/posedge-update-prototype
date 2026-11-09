@@ -1,0 +1,15 @@
+
+{
+
+  "serverUrl": "wss://posedge-update-prototype.onrender.com",
+  "agentToken": "Canada7272$#@",
+  "dataPath": "C:\\posedge\\Data",
+  "backupPath": "synology:XTREME POS DATA/",
+
+  "nasAuth": {
+    "username": "Sanjay",
+    "password": "Sairam432$#@"
+  }
+  
+}
+

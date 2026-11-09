@@ -1,0 +1,7 @@
+node_modules/
+rclone.conf
+node.exe
+*.zip
+backup_state.json
+folderName.txt
+history.json

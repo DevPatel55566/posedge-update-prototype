@@ -1,0 +1,172 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f3f4f6;
+  color: #111827;
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 260px;
+  background: #111827;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0;
+  flex-shrink: 0;
+}
+
+.sidebar-logo {
+  font-size: 20px;
+  font-weight: 800;
+  padding: 0 24px;
+  margin-bottom: 30px;
+  color: #fff;
+}
+
+.sidebar-menu {
+  list-style: none;
+}
+
+.sidebar-menu li a {
+  display: flex;
+  align-items: center;
+  padding: 14px 24px;
+  color: #9ca3af;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.sidebar-menu li a:hover,
+.sidebar-menu li a.active {
+  background: #1f2937;
+  color: #fff;
+  border-left: 4px solid #4f46e5;
+}
+
+.sidebar-menu li a span {
+  margin-right: 12px;
+  font-size: 18px;
+}
+
+/* Main Layout */
+.main-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.crm-header {
+  background: white;
+  padding: 20px 30px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.crm-header h1 {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.crm-body {
+  padding: 30px;
+}
+
+/* Header Info */
+.header-info {
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+.client-count {
+  color: #cc0000;
+  font-weight: bold;
+}
+
+/* The Table Styling (Matching your screenshot) */
+.crm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  background: white;
+  border: 1px solid #ccc;
+}
+
+.crm-table th,
+.crm-table td {
+  border: 1px solid #cccccc;
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.crm-table th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+  color: #333333;
+}
+
+/* Alternating row colors */
+.crm-table tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.crm-table tbody tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+/* Input Field Styling */
+.folder-input {
+  width: 100%;
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.folder-input:focus {
+  outline: none;
+  border-color: #4f46e5;
+}
+
+/* Button Styling */
+.btn-action {
+  background-color: #ffffff;
+  border: 1px solid #000000;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.btn-action:hover {
+  background-color: #e0e0e0;
+}
+
+.btn-action:disabled {
+  border-color: #cccccc;
+  color: #cccccc;
+  cursor: not-allowed;
+  background: none;
+}
+
+/* Status Colors */
+.status-online {
+  color: #008000;
+  font-weight: bold;
+}
+
+.status-offline {
+  color: #cc0000;
+  font-weight: bold;
+}

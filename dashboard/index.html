@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PosEdge CRM</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-logo">PosEdge CRM</div>
+        <ul class="sidebar-menu">
+            <li><a href="/" class="active"><span>💾</span> Backup Status</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <header class="crm-header">
+            <h1>Client Backup Status</h1>
+        </header>
+
+        <div class="crm-body">
+            <div class="header-info">
+                <span id="clientCount" class="client-count">Loading clients...</span>
+            </div>
+
+            <div class="data-card" style="background: transparent; box-shadow: none;">
+                <table class="crm-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 30%;">Client / Backup Folder Name</th>
+                            <th style="width: 15%;">Computer Name</th>
+                            <th style="width: 10%;">Status</th>
+                            <th style="width: 15%;">Last Backup</th>
+                            <th style="width: 15%;">Next Backup</th>
+                            <th style="width: 15%; text-align: center;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clientsBody">
+                        <!-- Data inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>

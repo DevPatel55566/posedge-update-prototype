@@ -25,6 +25,7 @@ export function performBackup(dataPath, nasPath, folderName) {
       dataPath,
       remoteDestination,
       "--config", configPath,
+      "--no-check-certificate", // <--- THIS IS THE MAGIC FLAG
       "--create-empty-src-dirs",
       "--transfers", "1",       
       "--checkers", "1",        

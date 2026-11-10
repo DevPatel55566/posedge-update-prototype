@@ -34,7 +34,7 @@ async function loadClients() {
                 tr.innerHTML = `
                     <td>
                         <input type="text" class="folder-input" id="folder_${agent.id}" 
-                               placeholder="Enter backup folder name..."
+                               value="${agent.folderName || ''}" placeholder="Enter backup folder name..."
                                onkeypress="handleEnter(event, '${agent.id}')">
                     </td>
                     <td><strong>${agent.computer}</strong></td>
@@ -87,15 +87,14 @@ function handleEnter(event, agentId) {
 
 async function runBackup(agentId) {
     const folderInput = document.getElementById(`folder_${agentId}`);
+    if (!folderInput) return;
+    
     let folderName = folderInput.value.trim();
 
     if (!folderName) {
-        alert("Please enter a backup folder name first.");
-        return;
+        folderName = document.getElementById(`folder_${agentId}`).placeholder; // Fallback if needed
     }
 
-    if (!confirm(`Run backup into folder "${folderName}"?`)) return;
-    
     try {
         const response = await fetch("/api/run-backup", {
             method: "POST",
@@ -104,6 +103,12 @@ async function runBackup(agentId) {
         });
         
         if (response.ok) {
+            // Briefly flash the button to show success
+            const btn = folderInput.parentElement.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.querySelector('button');
+            if(btn) {
+                btn.textContent = "Sent!";
+                setTimeout(() => { btn.textContent = "Save & Backup"; }, 2000);
+            }
             loadClients();
         } else {
             alert("Failed to reach agent. It might be offline.");

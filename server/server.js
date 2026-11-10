@@ -2,6 +2,7 @@ import express from "express";
 import http from "http";
 import path from "path";
 import fs from "fs";
+import crypto from "crypto"; // NEW: For safe IDs
 import { exec, execSync } from "child_process";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
@@ -69,7 +70,8 @@ wss.on("connection", (socket) => {
     }
 
     if (message.type === "agent_state") {
-      agentId = socket.remoteAddress; 
+      // Generate a safe, unique ID based on the connection IP
+      agentId = crypto.createHash('md5').update(socket.remoteAddress).digest('hex');
       message.data.id = agentId;
       agents.set(agentId, message.data);
       sockets.set(agentId, socket);
@@ -102,7 +104,6 @@ app.post("/api/run-backup", (req, res) => {
   }
 });
 
-// --- 3. READ NAS FOLDERS ---
 app.get("/api/nas-folders", (req, res) => {
     const rclonePath = path.join(process.cwd(), 'rclone');
     exec(`"${rclonePath}" lsd "Synology-R:XTREME POS DATA" --config "${rcloneConfPath}" --no-check-certificate`, (error, stdout, stderr) => {

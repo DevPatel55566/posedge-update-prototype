@@ -4,7 +4,6 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "postinstall": "curl -L -o rclone.zip https://downloads.rclone.org/rclone-current-linux-amd64.zip && python3 -m zipfile -e rclone.zip . && cp rclone-*/rclone . && chmod +x rclone",
         "start": "node server.js"
     },
     "dependencies": {

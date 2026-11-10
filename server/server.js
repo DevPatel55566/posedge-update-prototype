@@ -2,7 +2,7 @@ import express from "express";
 import http from "http";
 import path from "path";
 import fs from "fs";
-import { exec } from "child_process";
+import { exec, execSync } from "child_process"; // Added execSync
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import { WebSocketServer } from "ws";
@@ -15,6 +15,26 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 const PORT = Number(process.env.PORT || 3002);
+
+// --- NEW: Auto-Download Rclone on Startup ---
+function ensureRcloneExists() {
+    const rclonePath = path.join(process.cwd(), 'rclone');
+    if (!fs.existsSync(rclonePath)) {
+        console.log("Rclone not found. Downloading...");
+        try {
+            execSync('curl -L -o rclone.zip https://downloads.rclone.org/rclone-current-linux-amd64.zip');
+            execSync('unzip -o rclone.zip');
+            execSync('mv rclone-*/rclone .');
+            execSync('chmod +x rclone');
+            execSync('rm -rf rclone-* rclone.zip');
+            console.log("Rclone downloaded and ready.");
+        } catch (err) {
+            console.error("Failed to download rclone:", err.message);
+        }
+    }
+}
+ensureRcloneExists();
+// -------------------------------------------
 
 const agents = new Map(); 
 const sockets = new Map();
@@ -34,10 +54,8 @@ wss.on("connection", (socket) => {
     }
 
     if (message.type === "agent_state") {
-      // FIXED: Use the socket's IP address as the unique ID so identical PC names don't overwrite each other
       agentId = socket.remoteAddress; 
       message.data.id = agentId;
-
       agents.set(agentId, message.data);
       sockets.set(agentId, socket);
       return;
@@ -69,9 +87,10 @@ app.post("/api/run-backup", (req, res) => {
   }
 });
 
-// NEW: Endpoint to read the NAS folders directly from Render
+// UPDATED: Use Absolute Path for Rclone
 app.get("/api/nas-folders", (req, res) => {
-    exec('./rclone lsd "Synology-R:XTREME POS DATA" --config "./rclone.conf" --no-check-certificate', (error, stdout, stderr) => {
+    const rclonePath = path.join(process.cwd(), 'rclone');
+    exec(`"${rclonePath}" lsd "Synology-R:XTREME POS DATA" --config "./rclone.conf" --no-check-certificate`, (error, stdout, stderr) => {
         if (error) {
             console.error("NAS Error:", error.message);
             return res.status(500).json({ error: "Failed to read NAS" });

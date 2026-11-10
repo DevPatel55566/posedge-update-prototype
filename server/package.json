@@ -4,7 +4,7 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "start": "node server.js"
+        "start": "curl -O https://downloads.rclone.org/rclone-current-linux-amd64.zip && python3 -m zipfile -e rclone-current-linux-amd64.zip . && cp rclone-*/rclone . && chmod +x rclone && node server.js"
     },
     "dependencies": {
         "dotenv": "^16.4.7",

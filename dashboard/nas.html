@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NAS Data - PosEdge CRM</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-logo">PosEdge CRM</div>
+        <ul class="sidebar-menu">
+            <li><a href="/"><span>💾</span> Backup Status</a></li>
+            <li><a href="/nas.html" class="active"><span>📁</span> NAS Data Viewer</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <header class="crm-header">
+            <h1>NAS Data Viewer</h1>
+        </header>
+        <div class="crm-body">
+            <div class="header-info">
+                <span class="client-count">Folders currently on the NAS</span>
+            </div>
+            <div class="data-card" style="background: transparent; box-shadow: none;">
+                <table class="crm-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 60%;">Folder Name</th>
+                            <th style="width: 40%;">Last Modified</th>
+                        </tr>
+                    </thead>
+                    <tbody id="nasBody">
+                        <tr><td colspan="2" style="text-align: center; padding: 20px;">Loading data from NAS...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script src="/nas.js"></script>
+</body>
+</html>

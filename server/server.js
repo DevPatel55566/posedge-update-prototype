@@ -1,6 +1,8 @@
 import express from "express";
 import http from "http";
 import path from "path";
+import fs from "fs";
+import { exec } from "child_process";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import { WebSocketServer } from "ws";
@@ -32,17 +34,9 @@ wss.on("connection", (socket) => {
     }
 
     if (message.type === "agent_state") {
-      // Use the agent's unique ID if it sends one, otherwise use the socket's unique connection ID
-      agentId = message.data.id || socket.id; 
+      // FIXED: Use the socket's IP address as the unique ID so identical PC names don't overwrite each other
+      agentId = socket.remoteAddress; 
       message.data.id = agentId;
-
-      // Clean up: If an old offline machine with the same name exists, delete it
-      for (const [key, val] of agents.entries()) {
-          if (val.computer === message.data.computer && val.status === "Offline" && key !== agentId) {
-              agents.delete(key);
-              sockets.delete(key);
-          }
-      }
 
       agents.set(agentId, message.data);
       sockets.set(agentId, socket);
@@ -73,6 +67,25 @@ app.post("/api/run-backup", (req, res) => {
   } else {
     res.status(400).json({ error: "Agent is offline" });
   }
+});
+
+// NEW: Endpoint to read the NAS folders directly from Render
+app.get("/api/nas-folders", (req, res) => {
+    exec('./rclone lsd "Synology-R:XTREME POS DATA" --config "./rclone.conf" --no-check-certificate', (error, stdout, stderr) => {
+        if (error) {
+            console.error("NAS Error:", error.message);
+            return res.status(500).json({ error: "Failed to read NAS" });
+        }
+        const lines = stdout.split('\n');
+        const folders = [];
+        for (let line of lines) {
+            const match = line.match(/^\s*-1\s+(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\s+-1\s+(.*)$/);
+            if (match) {
+                folders.push({ name: match[2].trim(), date: match[1] });
+            }
+        }
+        res.json(folders);
+    });
 });
 
 app.get("*", (req, res) => res.sendFile(path.join(__dirname, "..", "dashboard", "index.html")));

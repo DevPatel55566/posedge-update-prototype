@@ -5,6 +5,7 @@ async function loadClients() {
         const response = await fetch("/api/status");
         const agents = await response.json();
         
+        // Sort alphabetically by folder name
         agents.sort((a, b) => {
             const nameA = a.folderName || "";
             const nameB = b.folderName || "";
@@ -18,7 +19,7 @@ async function loadClients() {
         countLabel.innerHTML = `${agents.length} clients found for Xtreme Tech Solutions`;
 
         if (agents.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px;">No agents connected yet.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 20px;">No agents connected yet.</td></tr>`;
             return;
         }
 
@@ -26,18 +27,20 @@ async function loadClients() {
             tbody.innerHTML = "";
         }
 
-        agents.forEach((agent) => {
+        agents.forEach((agent, index) => {
             let tr = renderedRows[agent.id];
 
             if (!tr) {
                 tr = document.createElement("tr");
                 tr.innerHTML = `
+                    <td class="col-srno" style="text-align: center; font-weight: bold; color: #6b7280;"></td>
                     <td>
                         <input type="text" class="folder-input" id="folder_${agent.id}" 
                                value="${agent.folderName || ''}" placeholder="Enter backup folder name..."
                                onkeypress="handleEnter(event, '${agent.id}')">
                     </td>
                     <td><strong>${agent.computer}</strong></td>
+                    <td class="col-date-started" style="color: #6b7280; font-size: 13px;"></td>
                     <td class="col-status"></td>
                     <td class="col-last"></td>
                     <td class="col-next"></td>
@@ -48,6 +51,12 @@ async function loadClients() {
                 renderedRows[agent.id] = tr;
                 tbody.appendChild(tr);
             }
+
+            // Update Sr No based on the sorted index
+            tr.querySelector(".col-srno").textContent = index + 1;
+
+            // Update Date Started
+            tr.querySelector(".col-date-started").textContent = agent.dateStarted ? new Date(agent.dateStarted).toLocaleDateString() : '—';
 
             const isOnline = agent.status === "Online";
             const statusTd = tr.querySelector(".col-status");
@@ -92,7 +101,8 @@ async function runBackup(agentId) {
     let folderName = folderInput.value.trim();
 
     if (!folderName) {
-        folderName = document.getElementById(`folder_${agentId}`).placeholder; // Fallback if needed
+        alert("Please enter a backup folder name.");
+        return;
     }
 
     try {
@@ -103,8 +113,7 @@ async function runBackup(agentId) {
         });
         
         if (response.ok) {
-            // Briefly flash the button to show success
-            const btn = folderInput.parentElement.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.querySelector('button');
+            const btn = folderInput.parentElement.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.querySelector('button');
             if(btn) {
                 btn.textContent = "Sent!";
                 setTimeout(() => { btn.textContent = "Save & Backup"; }, 2000);

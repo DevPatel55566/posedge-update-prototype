@@ -1,4 +1,3 @@
-// Store rendered rows so we can update them without wiping your typing
 const renderedRows = {};
 
 async function loadClients() {
@@ -27,26 +26,26 @@ async function loadClients() {
             tbody.innerHTML = "";
         }
 
-        agents.forEach((agent, index) => {
-            let tr = renderedRows[agent.computer];
+        agents.forEach((agent) => {
+            let tr = renderedRows[agent.id];
 
             if (!tr) {
                 tr = document.createElement("tr");
                 tr.innerHTML = `
                     <td>
-                        <input type="text" class="folder-input" id="folder_${agent.computer}" 
+                        <input type="text" class="folder-input" id="folder_${agent.id}" 
                                placeholder="Enter backup folder name..."
-                               onkeypress="handleEnter(event, '${agent.computer}')">
+                               onkeypress="handleEnter(event, '${agent.id}')">
                     </td>
                     <td><strong>${agent.computer}</strong></td>
                     <td class="col-status"></td>
                     <td class="col-last"></td>
                     <td class="col-next"></td>
                     <td style="text-align: center;">
-                        <button class="btn-action" onclick="runBackup('${agent.computer}')">Save & Backup</button>
+                        <button class="btn-action" onclick="runBackup('${agent.id}')">Save & Backup</button>
                     </td>
                 `;
-                renderedRows[agent.computer] = tr;
+                renderedRows[agent.id] = tr;
                 tbody.appendChild(tr);
             }
 
@@ -63,7 +62,6 @@ async function loadClients() {
             btn.style.backgroundColor = isOnline ? '#ffffff' : '#cccccc';
             btn.style.cursor = isOnline ? 'pointer' : 'not-allowed';
 
-            // Only update the input if the user is NOT currently typing
             const input = tr.querySelector(".folder-input");
             if (input && document.activeElement !== input) {
                 if (agent.folderName && input.value !== agent.folderName) {
@@ -73,7 +71,7 @@ async function loadClients() {
         });
 
         agents.forEach(agent => {
-            tbody.appendChild(renderedRows[agent.computer]);
+            tbody.appendChild(renderedRows[agent.id]);
         });
 
     } catch (error) {
@@ -81,28 +79,28 @@ async function loadClients() {
     }
 }
 
-function handleEnter(event, computerName) {
+function handleEnter(event, agentId) {
     if (event.key === "Enter") {
-        runBackup(computerName);
+        runBackup(agentId);
     }
 }
 
-async function runBackup(computerName) {
-    const folderInput = document.getElementById(`folder_${computerName}`);
+async function runBackup(agentId) {
+    const folderInput = document.getElementById(`folder_${agentId}`);
     let folderName = folderInput.value.trim();
 
     if (!folderName) {
-        folderName = computerName; 
-        folderInput.value = folderName; 
+        alert("Please enter a backup folder name first.");
+        return;
     }
 
-    if (!confirm(`Run backup for ${computerName} into folder "${folderName}"?`)) return;
+    if (!confirm(`Run backup into folder "${folderName}"?`)) return;
     
     try {
         const response = await fetch("/api/run-backup", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ computer: computerName, folderName })
+            body: JSON.stringify({ agentId: agentId, folderName: folderName })
         });
         
         if (response.ok) {

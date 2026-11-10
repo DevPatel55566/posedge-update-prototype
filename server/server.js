@@ -21,7 +21,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "..", "dashboard")));
 
 wss.on("connection", (socket) => {
-  let computerName = null;
+  let agentId = null;
 
   socket.on("message", (raw) => {
     const message = JSON.parse(raw.toString());
@@ -32,17 +32,29 @@ wss.on("connection", (socket) => {
     }
 
     if (message.type === "agent_state") {
-      computerName = message.data.computer;
-      agents.set(computerName, message.data);
-      sockets.set(computerName, socket);
+      // Use the agent's unique ID if it sends one, otherwise use the socket's unique connection ID
+      agentId = message.data.id || socket.id; 
+      message.data.id = agentId;
+
+      // Clean up: If an old offline machine with the same name exists, delete it
+      for (const [key, val] of agents.entries()) {
+          if (val.computer === message.data.computer && val.status === "Offline" && key !== agentId) {
+              agents.delete(key);
+              sockets.delete(key);
+          }
+      }
+
+      agents.set(agentId, message.data);
+      sockets.set(agentId, socket);
       return;
     }
   });
 
   socket.on("close", () => {
-    if (computerName) {
-        const agent = agents.get(computerName);
-        if (agent) { agent.status = "Offline"; agents.set(computerName, agent); }
+    if (agentId && agents.has(agentId)) {
+        const agent = agents.get(agentId);
+        agent.status = "Offline"; 
+        agents.set(agentId, agent);
     }
   });
 });
@@ -52,8 +64,8 @@ app.get("/api/status", (req, res) => {
 });
 
 app.post("/api/run-backup", (req, res) => {
-  const { computer, folderName } = req.body;
-  const socket = sockets.get(computer);
+  const { agentId, folderName } = req.body;
+  const socket = sockets.get(agentId);
   
   if (socket && socket.readyState === 1) {
     socket.send(JSON.stringify({ type: "run_backup", folderName }));

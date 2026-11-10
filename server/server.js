@@ -2,7 +2,7 @@ import express from "express";
 import http from "http";
 import path from "path";
 import fs from "fs";
-import { exec, execSync } from "child_process"; // Added execSync
+import { exec, execSync } from "child_process";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import { WebSocketServer } from "ws";
@@ -16,7 +16,22 @@ const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 const PORT = Number(process.env.PORT || 3002);
 
-// --- NEW: Auto-Download Rclone on Startup ---
+// --- 1. CREATE RCLONE.CONF AUTOMATICALLY ---
+const rcloneConfPath = path.join(process.cwd(), 'rclone.conf');
+if (!fs.existsSync(rcloneConfPath)) {
+    const configContent = `[Synology-R]
+type = webdav
+url = https://xtreme.dyndns.org:5006
+vendor = other
+user = xtssupport
+pass = hVQCx8pra3beHh2sjOpB7D2vqsPjdAW2viQYXAM
+no_check_certificate = true`;
+    fs.writeFileSync(rcloneConfPath, configContent);
+    console.log("Created missing rclone.conf on server.");
+}
+// -------------------------------------------
+
+// --- 2. AUTO-DOWNLOAD RCLONE ---
 function ensureRcloneExists() {
     const rclonePath = path.join(process.cwd(), 'rclone');
     if (!fs.existsSync(rclonePath)) {
@@ -87,10 +102,10 @@ app.post("/api/run-backup", (req, res) => {
   }
 });
 
-// UPDATED: Use Absolute Path for Rclone
+// --- 3. READ NAS FOLDERS ---
 app.get("/api/nas-folders", (req, res) => {
     const rclonePath = path.join(process.cwd(), 'rclone');
-    exec(`"${rclonePath}" lsd "Synology-R:XTREME POS DATA" --config "./rclone.conf" --no-check-certificate`, (error, stdout, stderr) => {
+    exec(`"${rclonePath}" lsd "Synology-R:XTREME POS DATA" --config "${rcloneConfPath}" --no-check-certificate`, (error, stdout, stderr) => {
         if (error) {
             console.error("NAS Error:", error.message);
             return res.status(500).json({ error: "Failed to read NAS" });

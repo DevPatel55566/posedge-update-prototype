@@ -2,8 +2,8 @@ import express from "express";
 import http from "http";
 import path from "path";
 import fs from "fs";
-import crypto from "crypto"; // NEW: For safe IDs
-import { exec, execSync } from "child_process";
+import crypto from "crypto";
+import { exec } from "child_process";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import { WebSocketServer } from "ws";
@@ -32,26 +32,6 @@ no_check_certificate = true`;
 }
 // -------------------------------------------
 
-// --- 2. AUTO-DOWNLOAD RCLONE ---
-function ensureRcloneExists() {
-    const rclonePath = path.join(process.cwd(), 'rclone');
-    if (!fs.existsSync(rclonePath)) {
-        console.log("Rclone not found. Downloading...");
-        try {
-            execSync('curl -L -o rclone.zip https://downloads.rclone.org/rclone-current-linux-amd64.zip');
-            execSync('unzip -o rclone.zip');
-            execSync('mv rclone-*/rclone .');
-            execSync('chmod +x rclone');
-            execSync('rm -rf rclone-* rclone.zip');
-            console.log("Rclone downloaded and ready.");
-        } catch (err) {
-            console.error("Failed to download rclone:", err.message);
-        }
-    }
-}
-ensureRcloneExists();
-// -------------------------------------------
-
 const agents = new Map(); 
 const sockets = new Map();
 
@@ -70,7 +50,6 @@ wss.on("connection", (socket) => {
     }
 
     if (message.type === "agent_state") {
-      // Generate a safe, unique ID based on the connection IP
       agentId = crypto.createHash('md5').update(socket.remoteAddress).digest('hex');
       message.data.id = agentId;
       agents.set(agentId, message.data);
@@ -105,8 +84,8 @@ app.post("/api/run-backup", (req, res) => {
 });
 
 app.get("/api/nas-folders", (req, res) => {
-    const rclonePath = path.join(process.cwd(), 'rclone');
-    exec(`"${rclonePath}" lsd "Synology-R:XTREME POS DATA" --config "${rcloneConfPath}" --no-check-certificate`, (error, stdout, stderr) => {
+    // Rclone is now globally installed via Docker, so we just call "rclone"
+    exec(`rclone lsd "Synology-R:XTREME POS DATA" --config "${rcloneConfPath}" --no-check-certificate`, (error, stdout, stderr) => {
         if (error) {
             console.error("NAS Error:", error.message);
             return res.status(500).json({ error: "Failed to read NAS" });

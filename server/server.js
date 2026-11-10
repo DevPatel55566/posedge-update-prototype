@@ -146,7 +146,7 @@ const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 const PORT = Number(process.env.PORT || 3002);
 
-// --- CREATE RCLONE.CONF AUTOMATICALLY ---
+// --- 1. CREATE RCLONE.CONF AUTOMATICALLY ---
 const rcloneConfPath = path.join(process.cwd(), 'rclone.conf');
 if (!fs.existsSync(rcloneConfPath)) {
     const configContent = `[Synology-R]
@@ -160,7 +160,7 @@ no_check_certificate = true`;
     console.log("Created missing rclone.conf on server.");
 }
 
-// --- AUTO-DOWNLOAD RCLONE ---
+// --- 2. AUTO-DOWNLOAD RCLONE ---
 function ensureRcloneExists() {
     const rclonePath = path.join(process.cwd(), 'rclone');
     if (!fs.existsSync(rclonePath)) {
@@ -185,8 +185,12 @@ const sockets = new Map();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "..", "dashboard")));
 
-wss.on("connection", (socket) => {
+// FIXED: Added 'req' to access headers
+wss.on("connection", (socket, req) => {
   let agentId = null;
+  
+  // FIXED: Get the real IP address from Render's proxy headers
+  const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || "unknown-ip";
 
   socket.on("message", (raw) => {
     const message = JSON.parse(raw.toString());
@@ -197,12 +201,11 @@ wss.on("connection", (socket) => {
     }
 
     if (message.type === "agent_state") {
-      // UNIQUE ID FIX: We use the IP address to create a unique hash. 
-      // It DOES NOT use the computer name to identify the machine anymore.
-      agentId = crypto.createHash('md5').update(socket.remoteAddress).digest('hex');
+      // Use the real client IP to generate the unique ID
+      agentId = crypto.createHash('md5').update(clientIp).digest('hex');
       message.data.id = agentId;
       
-      // If this is a new connection, save the date. If reconnecting, keep the original date.
+      // Preserve the original Date Started if it exists
       if (agents.has(agentId) && agents.get(agentId).dateStarted) {
           message.data.dateStarted = agents.get(agentId).dateStarted;
       } else {
